@@ -37,7 +37,7 @@ define ADD_CLEAN_RULE
     clean: clean_${1}
     .PHONY: clean_${1}
     clean_${1}:
-	$$(strip rm -f ${TARGET_DIR}/${1} $${${1}_OBJS:%.o=%.[doP]})
+	$$(strip rm -f ${TARGET_DIR}/${1} $${${1}_OBJS:%.o=%.[do]})
 	$${${1}_POSTCLEAN}
 endef
 
@@ -108,25 +108,15 @@ endef
 # COMPILE_C_CMDS - Commands for compiling C source code.
 define COMPILE_C_CMDS
 	@mkdir -p $(dir $@)
-	$(strip ${CC} -o $@ -c -MD ${CFLAGS} ${SRC_CFLAGS} ${INCDIRS} \
+	$(strip ${CC} -o $@ -c -MP -MD ${CFLAGS} ${SRC_CFLAGS} ${INCDIRS} \
 	    ${SRC_INCDIRS} ${SRC_DEFS} ${DEFS} $<)
-	@cp ${@:%$(suffix $@)=%.d} ${@:%$(suffix $@)=%.P}; \
-	 sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-	     -e '/^$$/ d' -e 's/$$/ :/' < ${@:%$(suffix $@)=%.d} \
-	     >> ${@:%$(suffix $@)=%.P}; \
-	 rm -f ${@:%$(suffix $@)=%.d}
 endef
 
 # COMPILE_CXX_CMDS - Commands for compiling C++ source code.
 define COMPILE_CXX_CMDS
 	@mkdir -p $(dir $@)
-	$(strip ${CXX} -o $@ -c -MD ${CXXFLAGS} ${SRC_CXXFLAGS} ${INCDIRS} \
+	$(strip ${CXX} -o $@ -c -MP -MD ${CXXFLAGS} ${SRC_CXXFLAGS} ${INCDIRS} \
 	    ${SRC_INCDIRS} ${SRC_DEFS} ${DEFS} $<)
-	@cp ${@:%$(suffix $@)=%.d} ${@:%$(suffix $@)=%.P}; \
-	 sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-	     -e '/^$$/ d' -e 's/$$/ :/' < ${@:%$(suffix $@)=%.d} \
-	     >> ${@:%$(suffix $@)=%.P}; \
-	 rm -f ${@:%$(suffix $@)=%.d}
 endef
 
 # INCLUDE_SUBMAKEFILE - Parameterized "function" that includes a new
@@ -246,7 +236,7 @@ define INCLUDE_SUBMAKEFILE
         # target-specific variables for the objects based on any source
         # variables that were defined.
         $${TGT}_OBJS += $${OBJS}
-        $${TGT}_DEPS += $${OBJS:%.o=%.P}
+        $${TGT}_DEPS += $${OBJS:%.o=%.d}
         $${OBJS}: SRC_CFLAGS   := $${$${TGT}_CFLAGS} $${SRC_CFLAGS}
         $${OBJS}: SRC_CXXFLAGS := $${$${TGT}_CXXFLAGS} $${SRC_CXXFLAGS}
         $${OBJS}: SRC_DEFS     := $$(addprefix -D,$${$${TGT}_DEFS} $${SRC_DEFS})
